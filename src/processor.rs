@@ -1,7 +1,10 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 use console::style;
 use mpl_migration_validator::state::UnlockMethod;
 use solana_program::pubkey::Pubkey;
+use solana_sdk::signer::Signer;
 
 use crate::{
     methods::{close, get_state, initialize, CloseParams, GetStateParams, InitializeParams},
@@ -10,11 +13,13 @@ use crate::{
 };
 
 pub fn process_initialize(
+    keypair: Option<PathBuf>,
+    rpc_url: Option<String>,
     collection_mint: Pubkey,
     unlock_method: String,
     collection_size: u32,
 ) -> Result<()> {
-    let config = setup::CliConfig::new()?;
+    let config = setup::CliConfig::new(keypair, rpc_url)?;
 
     let unlock_method = match unlock_method.to_lowercase().as_str() {
         "timed" => UnlockMethod::Timed,
@@ -25,6 +30,8 @@ pub fn process_initialize(
             ))
         }
     };
+
+    println!("keypair: {}", style(&config.keypair.pubkey()).green());
 
     let params = InitializeParams {
         client: &config.client,
@@ -64,8 +71,14 @@ pub fn process_initialize(
     Ok(())
 }
 
-pub fn process_close(collection_mint: Pubkey) -> Result<()> {
-    let config = setup::CliConfig::new()?;
+pub fn process_close(
+    keypair: Option<PathBuf>,
+    rpc_url: Option<String>,
+    collection_mint: Pubkey,
+) -> Result<()> {
+    let config = setup::CliConfig::new(keypair, rpc_url)?;
+
+    println!("keypair: {}", style(&config.keypair.pubkey()).green());
 
     let params = CloseParams {
         client: &config.client,
@@ -87,8 +100,12 @@ pub fn process_close(collection_mint: Pubkey) -> Result<()> {
     Ok(())
 }
 
-pub fn process_get_state(collection_mint: Pubkey) -> Result<()> {
-    let config = setup::CliConfig::new()?;
+pub fn process_get_state(
+    keypair: Option<PathBuf>,
+    rpc_url: Option<String>,
+    collection_mint: Pubkey,
+) -> Result<()> {
+    let config = setup::CliConfig::new(keypair, rpc_url)?;
 
     let get_state_params = GetStateParams {
         client: &config.client,
