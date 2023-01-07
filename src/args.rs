@@ -10,7 +10,7 @@ pub struct Args {
 
 #[derive(Clone, Subcommand)]
 pub enum Commands {
-    Initialize {
+    Init {
         /// Mint of the collection parent NFT.
         #[arg(short, long)]
         collection_mint: Pubkey,
@@ -23,7 +23,7 @@ pub enum Commands {
         #[arg(short, long)]
         size: u32,
     },
-    Close {
+    Cancel {
         /// Mint of the collection parent NFT.
         #[arg(short, long)]
         collection_mint: Pubkey,

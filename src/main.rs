@@ -9,11 +9,11 @@ fn main() -> Result<()> {
     let args = args::Args::parse();
 
     match args.command {
-        args::Commands::Initialize {
+        args::Commands::Init {
             collection_mint,
             unlock_method,
             size,
         } => process_initialize(collection_mint, unlock_method, size),
-        args::Commands::Close { collection_mint } => process_close(collection_mint),
+        args::Commands::Cancel { collection_mint } => process_close(collection_mint),
     }
 }
