@@ -1255,6 +1255,7 @@ dependencies = [
  "clap 4.0.32",
  "console",
  "dirs",
+ "indicatif 0.17.2",
  "mpl-migration-validator",
  "serde",
  "serde_yaml 0.9.16",
@@ -1515,6 +1516,18 @@ dependencies = [
  "lazy_static",
  "number_prefix",
  "regex",
+]
+
+[[package]]
+name = "indicatif"
+version = "0.17.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4295cbb7573c16d310e99e713cf9e75101eb190ab31fccd35f2d2691b4352b19"
+dependencies = [
+ "console",
+ "number_prefix",
+ "portable-atomic",
+ "unicode-width",
 ]
 
 [[package]]
@@ -2223,6 +2236,12 @@ dependencies = [
  "opaque-debug",
  "universal-hash",
 ]
+
+[[package]]
+name = "portable-atomic"
+version = "0.3.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26f6a7b87c2e435a3241addceeeff740ff8b7e76b74c13bf9acb17fa454ea00b"
 
 [[package]]
 name = "ppv-lite86"
@@ -3125,7 +3144,7 @@ dependencies = [
  "futures",
  "futures-util",
  "indexmap",
- "indicatif",
+ "indicatif 0.16.2",
  "itertools",
  "jsonrpc-core",
  "lazy_static",

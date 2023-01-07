@@ -20,6 +20,7 @@ pub struct InitializeParams<'a> {
     pub rule_set: Option<Pubkey>,
     pub collection_mint: Pubkey,
     pub unlock_method: UnlockMethod,
+    pub collection_size: u32,
 }
 
 pub fn initialize(params: InitializeParams) -> Result<Signature> {
@@ -30,6 +31,7 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
         rule_set,
         collection_mint,
         unlock_method,
+        collection_size,
     } = params;
 
     let collection_metadata = find_metadata_pda(&collection_mint).0;
@@ -38,7 +40,7 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
     let args = InitializeArgs {
         rule_set: Some(rule_set.unwrap_or_default()),
         unlock_method,
-        collection_size: 0,
+        collection_size,
     };
 
     let instruction = mpl_migration_validator::instruction::initialize(
@@ -56,6 +58,38 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
         &[instruction],
         Some(&payer.pubkey()),
         &[payer, authority],
+        recent_blockhash,
+    );
+
+    let sig = client.send_and_confirm_transaction(&transaction)?;
+
+    Ok(sig)
+}
+
+pub struct CloseParams<'a> {
+    pub client: &'a RpcClient,
+    pub authority: &'a Keypair,
+    pub collection_mint: Pubkey,
+}
+
+pub fn close(params: CloseParams) -> Result<Signature> {
+    let CloseParams {
+        client,
+        authority,
+        collection_mint,
+    } = params;
+
+    let migrate_state_pubkey = find_migrate_state_pda(collection_mint).0;
+
+    let instruction =
+        mpl_migration_validator::instruction::close(authority.pubkey(), migrate_state_pubkey);
+
+    let recent_blockhash = client.get_latest_blockhash()?;
+
+    let transaction = Transaction::new_signed_with_payer(
+        &[instruction],
+        Some(&authority.pubkey()),
+        &[authority],
         recent_blockhash,
     );
 
