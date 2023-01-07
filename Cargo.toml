@@ -1,0 +1,21 @@
+[package]
+name = "goose"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mpl-migration-validator = { git = "https://github.com/metaplex-foundation/mpl-migration-validator",  features = ["no-entrypoint"] }
+solana-client = "1.13.5"
+solana-sdk = "1.13.5"
+solana-program = "1.13.5"
+borsh = "0.9.3"
+anyhow = "1.0.68"
+solana-logger = "1.13.5"
+clap = { version = "4.0.32", features = ["derive"] }
+console = "0.15.4"
+dirs = "4.0.0"
+serde = "1.0.152"
+serde_yaml = "0.9.16"
+thiserror = "1.0.38"
