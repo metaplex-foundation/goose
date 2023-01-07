@@ -5,7 +5,21 @@
 
 A simple CLI to interact with the [mpl-migration-validator](https://github.com/metaplex-foundation/mpl-migration-validator) program.
 
+## Installation
+
+Install from source with `cargo` as normal or use this bash script to download and install the latest binary for your MacOs or Linux system:
+
+```bash
+bash <(curl -sSf https://raw.githubusercontent.com/metaplex-foundation/goose/main/scripts/install.sh)
+```
+
 ## Usage
+
+### Configuration
+
+By default, `goose` looks in your Solana config file for both the keypair and RPC URL to use. However, you can override either of the values found there by passing them in with the `-k` and `-r` flags.
+
+### Commands
 
 Open a migration state account for a given collection parent NFT to start the timed countdown:
 
