@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use dirs::config_dir;
+use dirs::home_dir;
 use serde::{Deserialize, Serialize};
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
@@ -52,9 +52,13 @@ impl CliConfig {
 }
 
 fn parse_solana_config() -> Option<SolanaConfig> {
-    let config_path = config_dir().expect("Couldn't find config dir");
+    let home_path = home_dir().expect("Couldn't find home dir");
 
-    let solana_config_path = config_path.join("solana").join("cli").join("config.yml");
+    let solana_config_path = home_path
+        .join(".config")
+        .join("solana")
+        .join("cli")
+        .join("config.yml");
 
     let config_file = File::open(solana_config_path).expect("Couldn't open config file");
     serde_yaml::from_reader(&config_file).ok()
