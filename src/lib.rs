@@ -7,8 +7,6 @@ pub mod processor;
 pub mod setup;
 pub mod utils;
 
-pub const EXPLORER_URL: &str = "https://explorer.solana.com";
-
 pub enum Cluster {
     Devnet,
     Mainnet,
