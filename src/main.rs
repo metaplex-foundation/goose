@@ -15,5 +15,6 @@ fn main() -> Result<()> {
             size,
         } => process_initialize(collection_mint, unlock_method, size),
         args::Commands::Cancel { collection_mint } => process_close(collection_mint),
+        args::Commands::GetState { collection_mint } => process_get_state(collection_mint),
     }
 }

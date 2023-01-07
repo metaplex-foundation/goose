@@ -6,7 +6,7 @@ use solana_program::pubkey::Pubkey;
 use crate::{
     methods::{close, get_state, initialize, CloseParams, GetStateParams, InitializeParams},
     setup,
-    utils::{find_migrate_state_pda, get_cluster, spinner_with_style},
+    utils::{get_cluster, spinner_with_style},
 };
 
 pub fn process_initialize(
@@ -52,13 +52,11 @@ pub fn process_initialize(
     spinner.set_message("Waiting for migration state to be initialized...");
     std::thread::sleep(std::time::Duration::from_secs(3));
 
-    let pubkey = find_migrate_state_pda(collection_mint).0;
-
     let get_state_params = GetStateParams {
         client: &config.client,
-        migration_state: &pubkey,
+        collection_mint,
     };
-    let state = get_state(get_state_params).unwrap();
+    let state = get_state(get_state_params)?;
     spinner.finish();
 
     println!("Migration state:\n {:#?}", style(state).green());
@@ -85,6 +83,20 @@ pub fn process_close(collection_mint: Pubkey) -> Result<()> {
         "Canceled migration successfully in tx: {}",
         style(link).green()
     );
+
+    Ok(())
+}
+
+pub fn process_get_state(collection_mint: Pubkey) -> Result<()> {
+    let config = setup::CliConfig::new()?;
+
+    let get_state_params = GetStateParams {
+        client: &config.client,
+        collection_mint,
+    };
+    let state = get_state(get_state_params)?;
+
+    println!("Migration state:\n {:#?}", style(state).green());
 
     Ok(())
 }

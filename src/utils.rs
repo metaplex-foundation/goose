@@ -21,7 +21,7 @@ pub fn find_metadata_pda(mint: &Pubkey) -> (Pubkey, u8) {
     Pubkey::find_program_address(seeds, &TOKEN_METADATA_ID)
 }
 
-pub fn find_migrate_state_pda(mint: Pubkey) -> (Pubkey, u8) {
+pub fn find_migrate_state_pda(mint: &Pubkey) -> (Pubkey, u8) {
     let seeds = &[b"migration", mint.as_ref()];
     Pubkey::find_program_address(seeds, &mpl_migration_validator::ID)
 }

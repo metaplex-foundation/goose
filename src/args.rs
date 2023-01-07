@@ -28,4 +28,9 @@ pub enum Commands {
         #[arg(short, long)]
         collection_mint: Pubkey,
     },
+    GetState {
+        /// Mint of the collection parent NFT.
+        #[arg(short, long)]
+        collection_mint: Pubkey,
+    },
 }

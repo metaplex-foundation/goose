@@ -19,3 +19,9 @@ Cancel a migration countdown by closing the migration state account:
 ```bash
 goose cancel -c <collection-parent-nft-address>
 ```
+
+Get the migration state of an existing migration state account:
+
+```bash
+goose get-state -c <collection-parent-nft-address>
+```

@@ -35,7 +35,7 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
     } = params;
 
     let collection_metadata = find_metadata_pda(&collection_mint).0;
-    let migrate_state_pubkey = find_migrate_state_pda(collection_mint).0;
+    let migrate_state_pubkey = find_migrate_state_pda(&collection_mint).0;
 
     let args = InitializeArgs {
         rule_set: Some(rule_set.unwrap_or_default()),
@@ -79,7 +79,7 @@ pub fn close(params: CloseParams) -> Result<Signature> {
         collection_mint,
     } = params;
 
-    let migrate_state_pubkey = find_migrate_state_pda(collection_mint).0;
+    let migrate_state_pubkey = find_migrate_state_pda(&collection_mint).0;
 
     let instruction =
         mpl_migration_validator::instruction::close(authority.pubkey(), migrate_state_pubkey);
@@ -100,16 +100,18 @@ pub fn close(params: CloseParams) -> Result<Signature> {
 
 pub struct GetStateParams<'a> {
     pub client: &'a RpcClient,
-    pub migration_state: &'a Pubkey,
+    pub collection_mint: Pubkey,
 }
 
 pub fn get_state(params: GetStateParams) -> Result<MigrationState> {
     let GetStateParams {
         client,
-        migration_state,
+        collection_mint,
     } = params;
 
-    let account = client.get_account_data(migration_state)?;
+    let pubkey = find_migrate_state_pda(&collection_mint).0;
+
+    let account = client.get_account_data(&pubkey)?;
 
     let state = MigrationState::deserialize(&mut account.as_slice())?;
 
