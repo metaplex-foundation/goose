@@ -7,7 +7,10 @@ use solana_program::pubkey::Pubkey;
 use solana_sdk::signer::Signer;
 
 use crate::{
-    methods::{close, get_state, initialize, CloseParams, GetStateParams, InitializeParams},
+    methods::{
+        close, get_state, initialize, initialize_msg, CloseParams, GetStateParams,
+        InitializeMsgParams, InitializeParams,
+    },
     setup,
     utils::{get_cluster, spinner_with_style},
 };
@@ -30,8 +33,6 @@ pub fn process_initialize(
             ))
         }
     };
-
-    println!("keypair: {}", style(&config.keypair.pubkey()).green());
 
     let params = InitializeParams {
         client: &config.client,
@@ -67,6 +68,41 @@ pub fn process_initialize(
     spinner.finish();
 
     println!("Migration state:\n {:#?}", style(state).green());
+
+    Ok(())
+}
+
+pub fn process_initialize_msg(
+    payer: Pubkey,
+    authority: Pubkey,
+    collection_mint: Pubkey,
+    unlock_method: String,
+    collection_size: u32,
+) -> Result<()> {
+    let unlock_method = match unlock_method.to_lowercase().as_str() {
+        "timed" => UnlockMethod::Timed,
+        "vote" => UnlockMethod::Vote,
+        _ => {
+            return Err(anyhow::anyhow!(
+                "Invalid unlock method. Must be one of: Timed, Vote"
+            ))
+        }
+    };
+
+    let params = InitializeMsgParams {
+        payer,
+        authority,
+        rule_set: None,
+        collection_mint,
+        unlock_method,
+        collection_size,
+    };
+    let spinner = spinner_with_style();
+    spinner.set_message("Initializing migration state...");
+    let message = initialize_msg(params)?;
+    spinner.finish();
+
+    println!("Transaction message:\n {:#?}", style(message).green());
 
     Ok(())
 }
