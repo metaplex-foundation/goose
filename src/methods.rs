@@ -5,7 +5,7 @@ use mpl_migration_validator::{
     state::{MigrationState, UnlockMethod},
 };
 use solana_client::rpc_client::RpcClient;
-use solana_program::pubkey::Pubkey;
+use solana_program::{message::Message, pubkey::Pubkey};
 use solana_sdk::{
     signature::{Keypair, Signature, Signer},
     transaction::Transaction,
@@ -64,6 +64,47 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
     let sig = client.send_and_confirm_transaction(&transaction)?;
 
     Ok(sig)
+}
+
+pub struct InitializeMsgParams {
+    pub payer: Pubkey,
+    pub authority: Pubkey,
+    pub rule_set: Option<Pubkey>,
+    pub collection_mint: Pubkey,
+    pub unlock_method: UnlockMethod,
+    pub collection_size: u32,
+}
+
+pub fn initialize_msg(params: InitializeMsgParams) -> Result<String> {
+    let InitializeMsgParams {
+        payer,
+        authority,
+        rule_set,
+        collection_mint,
+        unlock_method,
+        collection_size,
+    } = params;
+
+    let collection_metadata = find_metadata_pda(&collection_mint).0;
+    let migrate_state_pubkey = find_migrate_state_pda(&collection_mint).0;
+
+    let args = InitializeArgs {
+        rule_set: Some(rule_set.unwrap_or_default()),
+        unlock_method,
+        collection_size,
+    };
+
+    let instruction = mpl_migration_validator::instruction::initialize(
+        payer,
+        authority,
+        collection_mint,
+        collection_metadata,
+        migrate_state_pubkey,
+        args,
+    );
+
+    let message = Message::new(&[instruction], Some(&payer));
+    Ok(bs58::encode(message.serialize()).into_string())
 }
 
 pub struct CloseParams<'a> {

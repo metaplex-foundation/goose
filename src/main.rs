@@ -17,6 +17,13 @@ fn main() -> Result<()> {
             unlock_method,
             size,
         } => process_initialize(keypair_path, rpc_url, collection_mint, unlock_method, size),
+        args::Commands::InitMsg {
+            payer,
+            authority,
+            collection_mint,
+            unlock_method,
+            size,
+        } => process_initialize_msg(payer, authority, collection_mint, unlock_method, size),
         args::Commands::Cancel { collection_mint } => {
             process_close(keypair_path, rpc_url, collection_mint)
         }
