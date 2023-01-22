@@ -1,4 +1,4 @@
-use std::{fs::File, path::PathBuf};
+use std::{fs::File, path::PathBuf, str::FromStr};
 
 use anyhow::Result;
 use borsh::BorshDeserialize;
@@ -275,7 +275,11 @@ pub fn process_migrate(
     let config = setup::CliConfig::new(keypair, rpc_url)?;
 
     let f = File::open(mint_list)?;
-    let mints: Vec<Pubkey> = serde_json::from_reader(f)?;
+    let mints: Vec<String> = serde_json::from_reader(f)?;
+    let mints: Vec<Pubkey> = mints
+        .into_iter()
+        .map(|s| Pubkey::from_str(&s).unwrap())
+        .collect();
 
     let migrate_state = get_state(GetStateParams {
         client: &config.client,
