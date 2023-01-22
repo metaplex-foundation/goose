@@ -57,8 +57,6 @@ impl CliConfigBuilder {
             .clone()
             .ok_or_else(|| anyhow!("No rpc url provided"))?;
 
-        println!("rpc_url: {}", rpc_url);
-
         let commitment = match self.commitment.clone() {
             Some(commitment) => CommitmentConfig::from_str(&commitment)?,
             None => CommitmentConfig::confirmed(),
