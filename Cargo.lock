@@ -1286,6 +1286,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "borsh",
+ "bs58",
  "clap 4.0.32",
  "console",
  "dirs",

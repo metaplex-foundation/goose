@@ -20,9 +20,6 @@ fn main() -> Result<()> {
             unlock_method,
             size,
         } => process_initialize(keypair_path, rpc_url, collection_mint, unlock_method, size),
-<<<<<<< Updated upstream
-        args::Commands::Cancel { collection_mint } => {
-=======
         Commands::InitMsg {
             payer,
             authority,
@@ -31,7 +28,6 @@ fn main() -> Result<()> {
             size,
         } => process_initialize_msg(payer, authority, collection_mint, unlock_method, size),
         Commands::Cancel { collection_mint } => {
->>>>>>> Stashed changes
             process_close(keypair_path, rpc_url, collection_mint)
         }
         Commands::GetState { collection_mint } => {

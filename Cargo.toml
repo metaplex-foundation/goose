@@ -14,8 +14,6 @@ clap = { version = "4.0.32", features = ["derive"] }
 console = "0.15.4"
 dirs = "4.0.0"
 indicatif = "0.17.2"
-<<<<<<< Updated upstream
-=======
 mpl-migration-validator = { git = "https://github.com/metaplex-foundation/mpl-migration-validator",  branch = "develop", features = ["no-entrypoint", "serde-feature"] }
 serde = "1.0.152"
 serde_json = "1.0.91"
@@ -26,4 +24,3 @@ solana-program = "1.14"
 solana-sdk = "1.14"
 spl-token = "3.5.0"
 thiserror = "1.0.38"
->>>>>>> Stashed changes

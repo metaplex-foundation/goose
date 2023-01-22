@@ -5,7 +5,7 @@ use mpl_migration_validator::{
     state::{MigrationState, UnlockMethod},
 };
 use solana_client::rpc_client::RpcClient;
-use solana_program::pubkey::Pubkey;
+use solana_program::{message::Message, pubkey::Pubkey};
 use solana_sdk::{
     signature::{Keypair, Signature, Signer},
     transaction::Transaction,
@@ -61,8 +61,6 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
     Ok(sig)
 }
 
-<<<<<<< Updated upstream
-=======
 pub struct InitializeMsgParams {
     pub payer: Pubkey,
     pub authority: Pubkey,
@@ -95,7 +93,6 @@ pub fn initialize_msg(params: InitializeMsgParams) -> Result<String> {
     Ok(bs58::encode(message.serialize()).into_string())
 }
 
->>>>>>> Stashed changes
 pub struct CloseParams<'a> {
     pub client: &'a RpcClient,
     pub authority: &'a Keypair,

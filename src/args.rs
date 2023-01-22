@@ -33,6 +33,27 @@ pub enum Commands {
         #[arg(short, long)]
         size: u32,
     },
+    InitMsg {
+        /// Payer Pubkey
+        #[arg(short, long)]
+        payer: Pubkey,
+
+        /// Update Authority Pubkey
+        #[arg(short, long)]
+        authority: Pubkey,
+
+        /// Mint of the collection parent NFT.
+        #[arg(short, long)]
+        collection_mint: Pubkey,
+
+        /// Unlock method for the collection: Timed or Vote.
+        #[arg(short = 'm', long, default_value = "Timed")]
+        unlock_method: String,
+
+        /// Number of items in the collection.
+        #[arg(short, long)]
+        size: u32,
+    },
     Cancel {
         /// Mint of the collection parent NFT.
         #[arg(short, long)]
