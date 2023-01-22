@@ -1,7 +1,7 @@
 use anyhow::Result;
 use borsh::BorshDeserialize;
 use mpl_migration_validator::{
-    instruction::InitializeArgs,
+    instruction::{InitializeArgs, UpdateArgs},
     state::{MigrationState, UnlockMethod},
 };
 use solana_client::rpc_client::RpcClient;
@@ -11,7 +11,7 @@ use solana_sdk::{
     transaction::Transaction,
 };
 
-use crate::utils::{find_metadata_pda, find_migrate_state_pda};
+use crate::utils::find_migrate_state_pda;
 
 pub struct InitializeParams<'a> {
     pub client: &'a RpcClient,
@@ -34,9 +34,6 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
         collection_size,
     } = params;
 
-    let collection_metadata = find_metadata_pda(&collection_mint).0;
-    let migrate_state_pubkey = find_migrate_state_pda(&collection_mint).0;
-
     let args = InitializeArgs {
         rule_set: Some(rule_set.unwrap_or_default()),
         unlock_method,
@@ -47,8 +44,6 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
         payer.pubkey(),
         authority.pubkey(),
         collection_mint,
-        collection_metadata,
-        migrate_state_pubkey,
         args,
     );
 
@@ -66,6 +61,41 @@ pub fn initialize(params: InitializeParams) -> Result<Signature> {
     Ok(sig)
 }
 
+<<<<<<< Updated upstream
+=======
+pub struct InitializeMsgParams {
+    pub payer: Pubkey,
+    pub authority: Pubkey,
+    pub rule_set: Option<Pubkey>,
+    pub collection_mint: Pubkey,
+    pub unlock_method: UnlockMethod,
+    pub collection_size: u32,
+}
+
+pub fn initialize_msg(params: InitializeMsgParams) -> Result<String> {
+    let InitializeMsgParams {
+        payer,
+        authority,
+        rule_set,
+        collection_mint,
+        unlock_method,
+        collection_size,
+    } = params;
+
+    let args = InitializeArgs {
+        rule_set: Some(rule_set.unwrap_or_default()),
+        unlock_method,
+        collection_size,
+    };
+
+    let instruction =
+        mpl_migration_validator::instruction::initialize(payer, authority, collection_mint, args);
+
+    let message = Message::new(&[instruction], Some(&payer));
+    Ok(bs58::encode(message.serialize()).into_string())
+}
+
+>>>>>>> Stashed changes
 pub struct CloseParams<'a> {
     pub client: &'a RpcClient,
     pub authority: &'a Keypair,
@@ -83,6 +113,78 @@ pub fn close(params: CloseParams) -> Result<Signature> {
 
     let instruction =
         mpl_migration_validator::instruction::close(authority.pubkey(), migrate_state_pubkey);
+
+    let recent_blockhash = client.get_latest_blockhash()?;
+
+    let transaction = Transaction::new_signed_with_payer(
+        &[instruction],
+        Some(&authority.pubkey()),
+        &[authority],
+        recent_blockhash,
+    );
+
+    let sig = client.send_and_confirm_transaction(&transaction)?;
+
+    Ok(sig)
+}
+
+pub struct UpdateParams<'a> {
+    pub client: &'a RpcClient,
+    pub authority: &'a Keypair,
+    pub migration_state: Pubkey,
+    pub rule_set: Option<Pubkey>,
+    pub collection_size: Option<u32>,
+}
+
+pub fn update(params: UpdateParams) -> Result<Signature> {
+    let UpdateParams {
+        client,
+        authority,
+        migration_state,
+        rule_set,
+        collection_size,
+    } = params;
+
+    let args = UpdateArgs {
+        rule_set,
+        collection_size,
+    };
+
+    let instruction =
+        mpl_migration_validator::instruction::update(authority.pubkey(), migration_state, args);
+
+    let recent_blockhash = client.get_latest_blockhash()?;
+
+    let transaction = Transaction::new_signed_with_payer(
+        &[instruction],
+        Some(&authority.pubkey()),
+        &[authority],
+        recent_blockhash,
+    );
+
+    let sig = client.send_and_confirm_transaction(&transaction)?;
+
+    Ok(sig)
+}
+
+pub struct StartParams<'a> {
+    pub client: &'a RpcClient,
+    pub authority: &'a Keypair,
+    pub collection_mint: Pubkey,
+}
+
+pub fn start(params: StartParams) -> Result<Signature> {
+    let StartParams {
+        client,
+        authority,
+        collection_mint,
+    } = params;
+
+    let instruction = mpl_migration_validator::instruction::start(
+        authority.pubkey(),
+        authority.pubkey(),
+        collection_mint,
+    );
 
     let recent_blockhash = client.get_latest_blockhash()?;
 
@@ -116,4 +218,54 @@ pub fn get_state(params: GetStateParams) -> Result<MigrationState> {
     let state = MigrationState::deserialize(&mut account.as_slice())?;
 
     Ok(state)
+}
+
+pub struct MigrateParams<'a> {
+    pub client: &'a RpcClient,
+    pub payer: &'a Keypair,
+    pub item_mint: Pubkey,
+    pub item_token: Pubkey,
+    pub token_owner: Pubkey,
+    pub token_owner_program: Pubkey,
+    pub token_owner_program_buffer: Option<Pubkey>,
+    pub collection_mint: Pubkey,
+    pub rule_set: Pubkey,
+}
+
+pub fn migrate_item(params: MigrateParams) -> Result<Signature> {
+    let MigrateParams {
+        client,
+        payer,
+        item_mint,
+        item_token,
+        token_owner,
+        token_owner_program,
+        token_owner_program_buffer,
+        collection_mint,
+        rule_set,
+    } = params;
+
+    let instruction = mpl_migration_validator::instruction::migrate_item(
+        payer.pubkey(),
+        item_mint,
+        item_token,
+        token_owner,
+        token_owner_program,
+        token_owner_program_buffer,
+        collection_mint,
+        rule_set,
+    );
+
+    let recent_blockhash = client.get_latest_blockhash()?;
+
+    let transaction = Transaction::new_signed_with_payer(
+        &[instruction],
+        Some(&payer.pubkey()),
+        &[payer],
+        recent_blockhash,
+    );
+
+    let sig = client.send_and_confirm_transaction(&transaction)?;
+
+    Ok(sig)
 }

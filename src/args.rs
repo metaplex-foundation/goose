@@ -43,4 +43,32 @@ pub enum Commands {
         #[arg(short, long)]
         collection_mint: Pubkey,
     },
+    GetAllStates,
+    Update {
+        /// Mint of the collection parent NFT.
+        #[arg(short, long)]
+        collection_mint: Pubkey,
+
+        /// Rule set to use for the collection.
+        #[arg(short, long)]
+        rule_set: Option<Pubkey>,
+
+        /// New number of items in the collection.
+        #[arg(short, long)]
+        size: Option<u32>,
+    },
+    Start {
+        /// Mint of the collection parent NFT.
+        #[arg(short, long)]
+        collection_mint: Pubkey,
+    },
+    Migrate {
+        /// Mint of the collection parent NFT.
+        #[arg(short, long)]
+        collection_mint: Pubkey,
+
+        /// Mint list
+        #[arg(short, long)]
+        mint_list: PathBuf,
+    },
 }
