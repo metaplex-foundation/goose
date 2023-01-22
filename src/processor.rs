@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use solana_program::{
     bpf_loader_upgradeable::UpgradeableLoaderState, program_pack::Pack, pubkey::Pubkey,
 };
-use solana_sdk::{signature::Signature, signer::Signer, transaction::Transaction};
+use solana_sdk::{signer::Signer, transaction::Transaction};
 use spl_token::state::Account as TokenAccount;
 
 use crate::{
@@ -287,8 +287,8 @@ pub fn process_start(
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MigratedMint {
-    sig: Signature,
-    item_mint: Pubkey,
+    sig: String,
+    item_mint: String,
 }
 
 pub fn process_migrate(
@@ -354,7 +354,10 @@ pub fn process_migrate(
         };
 
         let sig = migrate_item(params)?;
-        completed_mints.push(MigratedMint { sig, item_mint });
+        completed_mints.push(MigratedMint {
+            sig: sig.to_string(),
+            item_mint: item_mint.to_string(),
+        });
 
         let cluster = get_cluster(&config.client)?;
         let link = format!("https://explorer.solana.com/tx/{}?cluster={cluster}", sig);
