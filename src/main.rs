@@ -27,6 +27,7 @@ fn main() -> Result<()> {
             unlock_method,
             size,
         } => process_initialize_msg(payer, authority, collection_mint, unlock_method, size),
+        Commands::InitSigner => process_initialize_signer(keypair_path, rpc_url),
         Commands::Cancel { collection_mint } => {
             process_close(keypair_path, rpc_url, collection_mint)
         }

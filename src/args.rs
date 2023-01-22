@@ -54,6 +54,7 @@ pub enum Commands {
         #[arg(short, long)]
         size: u32,
     },
+    InitSigner,
     Cancel {
         /// Mint of the collection parent NFT.
         #[arg(short, long)]

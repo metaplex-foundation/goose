@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use solana_program::{
     bpf_loader_upgradeable::UpgradeableLoaderState, program_pack::Pack, pubkey::Pubkey,
 };
-use solana_sdk::signature::Signature;
+use solana_sdk::{signer::Signer, transaction::Transaction};
 use spl_token::state::Account as TokenAccount;
 
 use crate::{
@@ -114,6 +114,31 @@ pub fn process_initialize_msg(
     spinner.finish();
 
     println!("Transaction message:\n {:#?}", style(message).green());
+
+    Ok(())
+}
+
+pub fn process_initialize_signer(keypair: Option<PathBuf>, rpc_url: Option<String>) -> Result<()> {
+    let config = setup::CliConfig::new(keypair, rpc_url)?;
+
+    let instruction = mpl_migration_validator::instruction::init_signer(config.keypair.pubkey());
+    let spinner = spinner_with_style();
+    spinner.set_message("Initializing program signer...");
+    let recent_blockhash = config.client.get_latest_blockhash()?;
+
+    let transaction = Transaction::new_signed_with_payer(
+        &[instruction],
+        Some(&config.keypair.pubkey()),
+        &[&config.keypair],
+        recent_blockhash,
+    );
+
+    let sig = config.client.send_and_confirm_transaction(&transaction)?;
+    spinner.finish();
+    println!(
+        "Initialized program signer successfully in tx: {}",
+        style(sig).green()
+    );
 
     Ok(())
 }
@@ -262,8 +287,8 @@ pub fn process_start(
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MigratedMint {
-    sig: Signature,
-    item_mint: Pubkey,
+    sig: String,
+    item_mint: String,
 }
 
 pub fn process_migrate(
@@ -329,7 +354,10 @@ pub fn process_migrate(
         };
 
         let sig = migrate_item(params)?;
-        completed_mints.push(MigratedMint { sig, item_mint });
+        completed_mints.push(MigratedMint {
+            sig: sig.to_string(),
+            item_mint: item_mint.to_string(),
+        });
 
         let cluster = get_cluster(&config.client)?;
         let link = format!("https://explorer.solana.com/tx/{}?cluster={cluster}", sig);
