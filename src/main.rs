@@ -46,5 +46,9 @@ fn main() -> Result<()> {
             collection_mint,
             mint_list,
         } => process_migrate(keypair_path, rpc_url, collection_mint, mint_list),
+        Commands::Sudo {
+            collection_mint,
+            ts,
+        } => process_sudo(keypair_path, rpc_url, collection_mint, ts),
     }
 }

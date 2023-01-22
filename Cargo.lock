@@ -1860,8 +1860,7 @@ dependencies = [
 
 [[package]]
 name = "mpl-migration-validator"
-version = "0.2.0"
-source = "git+https://github.com/metaplex-foundation/mpl-migration-validator?branch=develop#a09572c8b19f7561b729f20b3e5802fcd6266f03"
+version = "0.2.1"
 dependencies = [
  "bincode",
  "borsh",

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use solana_program::{
     bpf_loader_upgradeable::UpgradeableLoaderState, program_pack::Pack, pubkey::Pubkey,
 };
-use solana_sdk::signature::Signature;
+use solana_sdk::{signature::Signature, signer::Signer, transaction::Transaction};
 use spl_token::state::Account as TokenAccount;
 
 use crate::{
@@ -336,6 +336,32 @@ pub fn process_migrate(
     let file_name = format!("{}_migrated_mints.json", collection_mint);
     let f = File::create(file_name)?;
     serde_json::to_writer_pretty(f, &completed_mints)?;
+
+    Ok(())
+}
+
+pub fn process_sudo(
+    keypair: Option<PathBuf>,
+    rpc_url: Option<String>,
+    collection_mint: Pubkey,
+    ts: i64,
+) -> Result<()> {
+    let config = setup::CliConfig::new(keypair, rpc_url)?;
+
+    let instruction =
+        mpl_migration_validator::instruction::sudo(config.keypair.pubkey(), collection_mint, ts);
+
+    let recent_blockhash = config.client.get_latest_blockhash()?;
+
+    let transaction = Transaction::new_signed_with_payer(
+        &[instruction],
+        Some(&config.keypair.pubkey()),
+        &[&config.keypair],
+        recent_blockhash,
+    );
+
+    let sig = config.client.send_and_confirm_transaction(&transaction)?;
+    println!("Tx: {}", style(sig).green());
 
     Ok(())
 }

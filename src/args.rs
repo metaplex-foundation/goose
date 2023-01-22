@@ -92,4 +92,11 @@ pub enum Commands {
         #[arg(short, long)]
         mint_list: PathBuf,
     },
-}
+    Sudo {
+        #[arg(short, long)]
+        collection_mint: Pubkey,
+
+        #[arg(long)]
+        ts: i64
+    },
+    }
