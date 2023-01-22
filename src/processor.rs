@@ -201,7 +201,7 @@ pub fn process_get_all_states(keypair: Option<PathBuf>, rpc_url: Option<String>)
 
     println!(
         "Found: {}",
-        style(format!("{} states", account_results.len())).green()
+        style(format!("{} states", account_results.len() - 1)).green()
     );
 
     let file_name = format!("{}_migration_states.json", cluster);
