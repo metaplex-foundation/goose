@@ -348,8 +348,10 @@ pub fn process_sudo(
 ) -> Result<()> {
     let config = setup::CliConfig::new(keypair, rpc_url)?;
 
+    let (migration_state, _) = find_migration_state_pda(&collection_mint);
+
     let instruction =
-        mpl_migration_validator::instruction::sudo(config.keypair.pubkey(), collection_mint, ts);
+        mpl_migration_validator::instruction::sudo(config.keypair.pubkey(), migration_state, ts);
 
     let recent_blockhash = config.client.get_latest_blockhash()?;
 

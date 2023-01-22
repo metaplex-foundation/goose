@@ -1896,7 +1896,8 @@ dependencies = [
 [[package]]
 name = "mpl-token-metadata"
 version = "1.7.0-beta.1"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library?branch=feat/programmable-asset#5c47630ca01e1d971117696b7570a99aa5137ae2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a80496bd2d781bf2b5b406847e1f9422c87334dc9c1273474465989d36e4238d"
 dependencies = [
  "arrayref",
  "borsh",
@@ -1926,7 +1927,8 @@ dependencies = [
 [[package]]
 name = "mpl-token-metadata-context-derive"
 version = "0.1.1"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library?branch=feat/programmable-asset#5c47630ca01e1d971117696b7570a99aa5137ae2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e6f84ee9941d37274d5148d6ecc7a34773368216ceab150851a5c231308c4ab"
 dependencies = [
  "quote 1.0.23",
  "syn 1.0.107",
@@ -1961,7 +1963,8 @@ dependencies = [
 [[package]]
 name = "mpl-utils"
 version = "0.0.6"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library?branch=feat/programmable-asset#5c47630ca01e1d971117696b7570a99aa5137ae2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6195ce98b92f1d0ea06d0cc9b2392d81673e02b8fb063589926fa73ee6b071a"
 dependencies = [
  "arrayref",
  "borsh",
