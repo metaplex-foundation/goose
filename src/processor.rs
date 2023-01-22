@@ -6,6 +6,7 @@ use console::style;
 use mpl_migration_validator::{
     state::{MigrationState, UnlockMethod},
     utils::find_migration_state_pda,
+    PROGRAM_SIGNER,
 };
 use serde::{Deserialize, Serialize};
 use solana_program::{
@@ -207,9 +208,20 @@ pub fn process_get_all_states(keypair: Option<PathBuf>, rpc_url: Option<String>)
 
     let mut states = Vec::new();
 
-    for (_pubkey, account) in account_results {
+    for (pubkey, account) in account_results {
+        // Skip program signer account
+        if pubkey == PROGRAM_SIGNER {
+            continue;
+        }
+
         let state =
-            <MigrationState as BorshDeserialize>::deserialize(&mut account.data.as_slice())?;
+            match <MigrationState as BorshDeserialize>::deserialize(&mut account.data.as_slice()) {
+                Ok(state) => state,
+                Err(_) => {
+                    println!("Failed to deserialize state for account {:?}", pubkey);
+                    continue;
+                }
+            };
         states.push(state);
     }
 

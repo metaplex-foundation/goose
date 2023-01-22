@@ -42,3 +42,26 @@ Get the migration state of an existing migration state account:
 ```bash
 goose get-state -c <collection-parent-nft-address>
 ```
+
+Get all migration state accounts on a particular cluster:
+
+```bash
+goose get-all-states
+```
+
+Update a migration state and check if it's ready to be unlocked:
+
+```bash
+goose update -c <collection-parent-nft-address> -s <COLLECTION_SIZE> -R <RULE_SET_PUBKEY>
+```
+Enable migration for a collection:
+
+```bash
+goose start -c <collection-parent-nft-address>
+```
+
+Migrate items from a mint list, if the migration is enabled:
+
+```bash
+goose migrate -c <collection-parent-nft-address> -m <mint-list-file>
+```
