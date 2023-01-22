@@ -72,7 +72,7 @@ pub enum Commands {
         collection_mint: Pubkey,
 
         /// Rule set to use for the collection.
-        #[arg(short, long)]
+        #[arg(short = 'R', long)]
         rule_set: Option<Pubkey>,
 
         /// New number of items in the collection.
