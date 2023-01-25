@@ -1860,8 +1860,8 @@ dependencies = [
 
 [[package]]
 name = "mpl-migration-validator"
-version = "0.2.0"
-source = "git+https://github.com/metaplex-foundation/mpl-migration-validator?branch=develop#a09572c8b19f7561b729f20b3e5802fcd6266f03"
+version = "0.2.1"
+source = "git+https://github.com/metaplex-foundation/mpl-migration-validator?branch=develop#07c4cc33b604e935bcb13d4a90052127115ef5d1"
 dependencies = [
  "bincode",
  "borsh",
@@ -1896,14 +1896,14 @@ dependencies = [
 
 [[package]]
 name = "mpl-token-metadata"
-version = "1.7.0-beta.1"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library?branch=feat/programmable-asset#5c47630ca01e1d971117696b7570a99aa5137ae2"
+version = "1.7.0-beta.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "724435572642ee837b63ffed3fa46403e3208e5088e5ff34b792e510e3e6c0ff"
 dependencies = [
  "arrayref",
  "borsh",
  "mpl-token-auth-rules",
- "mpl-token-metadata-context-derive 0.1.1",
- "mpl-token-vault",
+ "mpl-token-metadata-context-derive 0.2.0",
  "mpl-utils 0.0.6",
  "num-derive",
  "num-traits",
@@ -1926,25 +1926,12 @@ dependencies = [
 
 [[package]]
 name = "mpl-token-metadata-context-derive"
-version = "0.1.1"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library?branch=feat/programmable-asset#5c47630ca01e1d971117696b7570a99aa5137ae2"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8abc5c84657015726b8e74d0119c0b52fbbbb63c39ea1fe06ddcdcaf20105787"
 dependencies = [
  "quote 1.0.23",
  "syn 1.0.107",
-]
-
-[[package]]
-name = "mpl-token-vault"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ade4ef15bc06a6033076c4ff28cba9b42521df5ec61211d6f419415ace2746a"
-dependencies = [
- "borsh",
- "num-derive",
- "num-traits",
- "solana-program",
- "spl-token",
- "thiserror",
 ]
 
 [[package]]
@@ -1962,7 +1949,8 @@ dependencies = [
 [[package]]
 name = "mpl-utils"
 version = "0.0.6"
-source = "git+https://github.com/metaplex-foundation/metaplex-program-library?branch=feat/programmable-asset#5c47630ca01e1d971117696b7570a99aa5137ae2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6195ce98b92f1d0ea06d0cc9b2392d81673e02b8fb063589926fa73ee6b071a"
 dependencies = [
  "arrayref",
  "borsh",
