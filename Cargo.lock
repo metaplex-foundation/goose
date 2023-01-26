@@ -1860,8 +1860,8 @@ dependencies = [
 
 [[package]]
 name = "mpl-migration-validator"
-version = "0.2.1"
-source = "git+https://github.com/metaplex-foundation/mpl-migration-validator?branch=develop#07c4cc33b604e935bcb13d4a90052127115ef5d1"
+version = "0.3.0"
+source = "git+https://github.com/metaplex-foundation/mpl-migration-validator#e1bce70f496b4f822c20c147e4e0888cf7250504"
 dependencies = [
  "bincode",
  "borsh",
@@ -1879,31 +1879,32 @@ dependencies = [
 
 [[package]]
 name = "mpl-token-auth-rules"
-version = "0.2.5"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b5b9bf9823c1b13c75db8fb1cb624380c5600391d9600cd8503f4138e48aa89"
+checksum = "a14e1ac5350734fd07f17d7eab733d27b7b45ca963642c565ec34ab015d9ceda"
 dependencies = [
  "borsh",
- "mpl-token-metadata-context-derive 0.0.1",
+ "mpl-token-metadata-context-derive",
  "num-derive",
  "num-traits",
  "rmp-serde",
  "serde",
  "shank 0.0.11",
  "solana-program",
+ "solana-zk-token-sdk",
  "thiserror",
 ]
 
 [[package]]
 name = "mpl-token-metadata"
-version = "1.7.0-beta.2"
+version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "724435572642ee837b63ffed3fa46403e3208e5088e5ff34b792e510e3e6c0ff"
+checksum = "5accdfde5c18465c65bd664169845a185f8a00d973d5c15396fef858dd2e52d9"
 dependencies = [
  "arrayref",
  "borsh",
  "mpl-token-auth-rules",
- "mpl-token-metadata-context-derive 0.2.0",
+ "mpl-token-metadata-context-derive",
  "mpl-utils 0.0.6",
  "num-derive",
  "num-traits",
@@ -1916,19 +1917,9 @@ dependencies = [
 
 [[package]]
 name = "mpl-token-metadata-context-derive"
-version = "0.0.1"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4d72db771ffb888fd22278b58cd91d50f2fc47c9705acb9f04c00b4ecaa80fc"
-dependencies = [
- "quote 1.0.23",
- "syn 1.0.107",
-]
-
-[[package]]
-name = "mpl-token-metadata-context-derive"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8abc5c84657015726b8e74d0119c0b52fbbbb63c39ea1fe06ddcdcaf20105787"
+checksum = "12989bc45715b0ee91944855130131479f9c772e198a910c3eb0ea327d5bffc3"
 dependencies = [
  "quote 1.0.23",
  "syn 1.0.107",
