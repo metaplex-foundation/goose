@@ -59,7 +59,7 @@ pub fn process_initialize(
     spinner.finish();
 
     let cluster = get_cluster(&config.client)?;
-    let link = format!("https://explorer.solana.com/tx/{}?cluster={cluster}", sig);
+    let link = format!("https://explorer.solana.com/tx/{sig}?cluster={cluster}");
     println!(
         "Intialized migration state successfully in tx: {}",
         style(link).green()
@@ -162,7 +162,7 @@ pub fn process_close(
     spinner.finish();
 
     let cluster = get_cluster(&config.client)?;
-    let link = format!("https://explorer.solana.com/tx/{}?cluster={cluster}", sig);
+    let link = format!("https://explorer.solana.com/tx/{sig}?cluster={cluster}");
     println!(
         "Canceled migration successfully in tx: {}",
         style(link).green()
@@ -204,7 +204,7 @@ pub fn process_get_all_states(keypair: Option<PathBuf>, rpc_url: Option<String>)
         style(format!("{} states", account_results.len() - 1)).green()
     );
 
-    let file_name = format!("{}_migration_states.json", cluster);
+    let file_name = format!("{cluster}_migration_states.json");
 
     let mut states = Vec::new();
 
@@ -218,7 +218,7 @@ pub fn process_get_all_states(keypair: Option<PathBuf>, rpc_url: Option<String>)
             match <MigrationState as BorshDeserialize>::deserialize(&mut account.data.as_slice()) {
                 Ok(state) => state,
                 Err(_) => {
-                    println!("Failed to deserialize state for account {:?}", pubkey);
+                    println!("Failed to deserialize state for account {pubkey:?}");
                     continue;
                 }
             };
@@ -260,7 +260,7 @@ pub fn process_update(
     spinner.finish();
 
     let cluster = get_cluster(&config.client)?;
-    let link = format!("https://explorer.solana.com/tx/{}?cluster={cluster}", sig);
+    let link = format!("https://explorer.solana.com/tx/{sig}?cluster={cluster}");
     println!(
         "Updated migration state successfully in tx: {}",
         style(link).green()
@@ -288,7 +288,7 @@ pub fn process_start(
     spinner.finish();
 
     let cluster = get_cluster(&config.client)?;
-    let link = format!("https://explorer.solana.com/tx/{}?cluster={cluster}", sig);
+    let link = format!("https://explorer.solana.com/tx/{sig}?cluster={cluster}");
     println!(
         "Started migration successfully in tx: {}",
         style(link).green()
@@ -372,12 +372,12 @@ pub fn process_migrate(
         });
 
         let cluster = get_cluster(&config.client)?;
-        let link = format!("https://explorer.solana.com/tx/{}?cluster={cluster}", sig);
+        let link = format!("https://explorer.solana.com/tx/{sig}?cluster={cluster}");
         println!("Migrated successfully in tx: {}", style(link).green());
     }
     spinner.finish();
 
-    let file_name = format!("{}_migrated_mints.json", collection_mint);
+    let file_name = format!("{collection_mint}_migrated_mints.json");
     let f = File::create(file_name)?;
     serde_json::to_writer_pretty(f, &completed_mints)?;
 
