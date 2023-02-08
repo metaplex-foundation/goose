@@ -47,6 +47,16 @@ async fn main() -> Result<()> {
         Commands::Migrate {
             collection_mint,
             mint_list,
-        } => process_migrate(keypair_path, rpc_url, collection_mint, mint_list).await,
+            batch_size,
+        } => {
+            process_migrate(
+                keypair_path,
+                rpc_url,
+                collection_mint,
+                mint_list,
+                batch_size,
+            )
+            .await
+        }
     }
 }

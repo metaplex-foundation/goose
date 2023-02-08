@@ -322,6 +322,7 @@ pub async fn process_migrate(
     rpc_url: Option<String>,
     collection_mint: Pubkey,
     mint_list: PathBuf,
+    batch_size: usize,
 ) -> Result<()> {
     let config = setup::CliConfig::new(keypair, rpc_url)?;
 
@@ -346,7 +347,7 @@ pub async fn process_migrate(
     let client = Arc::new(config.client);
 
     let mut tasks = FuturesUnordered::new();
-    let semaphore = Arc::new(Semaphore::new(100));
+    let semaphore = Arc::new(Semaphore::new(batch_size));
     let pb = create_progress_bar("", mints.len() as u64);
 
     pb.set_message("Migrating mints...");
