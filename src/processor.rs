@@ -1,19 +1,23 @@
-use std::{fs::File, path::PathBuf, str::FromStr};
+use std::{fs::File, path::PathBuf, str::FromStr, sync::Arc};
 
+use ::futures::stream::FuturesUnordered;
 use anyhow::Result;
 use borsh::BorshDeserialize;
 use console::style;
+use futures::StreamExt;
 use mpl_migration_validator::{
     state::{MigrationState, UnlockMethod},
     utils::find_migration_state_pda,
     PROGRAM_SIGNER,
 };
 use serde::{Deserialize, Serialize};
+use solana_client::rpc_client::RpcClient;
 use solana_program::{
     bpf_loader_upgradeable::UpgradeableLoaderState, program_pack::Pack, pubkey::Pubkey,
 };
-use solana_sdk::{signer::Signer, transaction::Transaction};
+use solana_sdk::{signature::Keypair, signer::Signer, transaction::Transaction};
 use spl_token::state::Account as TokenAccount;
+use tokio::sync::{Mutex, Semaphore};
 
 use crate::{
     methods::{
@@ -22,7 +26,7 @@ use crate::{
         UpdateParams,
     },
     setup,
-    utils::{get_cluster, get_nft_token_account, spinner_with_style},
+    utils::{create_progress_bar, get_cluster, get_nft_token_account, spinner_with_style},
 };
 
 pub fn process_initialize(
@@ -303,7 +307,13 @@ pub struct MigratedMint {
     item_mint: String,
 }
 
-pub fn process_migrate(
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MigrationError {
+    mint: String,
+    error: String,
+}
+
+pub async fn process_migrate(
     keypair: Option<PathBuf>,
     rpc_url: Option<String>,
     collection_mint: Pubkey,
@@ -325,61 +335,179 @@ pub fn process_migrate(
 
     let rule_set = migrate_state.collection_info.rule_set;
 
-    let mut completed_mints = Vec::new();
+    let completed_mints: Arc<Mutex<Vec<MigratedMint>>> = Arc::new(Mutex::new(Vec::new()));
+    let errors: Arc<Mutex<Vec<MigrationError>>> = Arc::new(Mutex::new(Vec::new()));
+
+    let keypair = Arc::new(config.keypair);
+    let client = Arc::new(config.client);
+
+    let mut tasks = FuturesUnordered::new();
+    let semaphore = Arc::new(Semaphore::new(100));
+    let pb = create_progress_bar("", mints.len() as u64);
 
     let spinner = spinner_with_style();
     spinner.set_message("Migrating...");
     for item_mint in mints {
-        let item_token = get_nft_token_account(&config.client, item_mint)?;
-        let account = config.client.get_account(&item_token)?;
-        let token_account = TokenAccount::unpack(&account.data)?;
-        let token_owner = token_account.owner;
-        let token_owner_program = config.client.get_account(&token_owner)?.owner;
-        let token_owner_program_info = config.client.get_account(&token_owner_program)?;
+        let permit = Arc::clone(&semaphore).acquire_owned().await.unwrap();
+        let pb = pb.clone();
+        let errors = errors.clone();
+        let keypair = keypair.clone();
+        let client = client.clone();
 
-        // We need to pass the program data buffer to the migration program
-        // if the token owner program is an upgradeable program.
-        let state_opt: Option<UpgradeableLoaderState> =
-            bincode::deserialize(&token_owner_program_info.data).ok();
+        tasks.push(tokio::spawn(async move {
+            let _permit = permit;
 
-        let token_owner_program_buffer = if let Some(state) = state_opt {
-            match state {
-                UpgradeableLoaderState::Program {
-                    programdata_address,
-                } => Some(programdata_address),
-                _ => None,
+            let args = MigrateArgs {
+                keypair,
+                client,
+                collection_mint,
+                item_mint,
+                rule_set,
+                completed_mints: Arc::new(Mutex::new(Vec::new())),
+                errors: Arc::new(Mutex::new(Vec::new())),
+            };
+            match migrate_mint(args).await {
+                Ok(_) => {}
+                Err(e) => {
+                    errors.lock().await.push(MigrationError {
+                        mint: item_mint.to_string(),
+                        error: e.to_string(),
+                    });
+                }
             }
-        } else {
-            None
-        };
 
-        let params = MigrateParams {
-            client: &config.client,
-            payer: &config.keypair,
-            item_mint,
-            item_token,
-            token_owner,
-            token_owner_program,
-            token_owner_program_buffer,
-            collection_mint,
-            rule_set,
-        };
+            pb.inc(1);
+        }));
+    }
 
-        let sig = migrate_item(params)?;
-        completed_mints.push(MigratedMint {
-            sig: sig.to_string(),
-            item_mint: item_mint.to_string(),
-        });
-
-        let cluster = get_cluster(&config.client)?;
-        let link = format!("https://explorer.solana.com/tx/{sig}?cluster={cluster}");
-        println!("Migrated successfully in tx: {}", style(link).green());
+    while let Some(task) = tasks.next().await {
+        task?;
     }
     spinner.finish();
 
-    let file_name = format!("{collection_mint}_migrated_mints.json");
-    let f = File::create(file_name)?;
+    let completed_mints = Arc::try_unwrap(completed_mints).unwrap().into_inner();
+    let errors = Arc::try_unwrap(errors).unwrap().into_inner();
+
+    let success_name = format!("{collection_mint}_migrated_mints.json");
+    let failures_name = format!("{collection_mint}_failed_mints.json");
+    let f = File::create(success_name)?;
+    let e = File::create(failures_name)?;
     serde_json::to_writer_pretty(f, &completed_mints)?;
+    serde_json::to_writer_pretty(e, &errors)?;
+
+    Ok(())
+}
+
+struct MigrateArgs {
+    keypair: Arc<Keypair>,
+    client: Arc<RpcClient>,
+    collection_mint: Pubkey,
+    item_mint: Pubkey,
+    rule_set: Pubkey,
+    completed_mints: Arc<Mutex<Vec<MigratedMint>>>,
+    errors: Arc<Mutex<Vec<MigrationError>>>,
+}
+
+async fn migrate_mint(args: MigrateArgs) -> Result<()> {
+    let item_token = match get_nft_token_account(&args.client, args.item_mint) {
+        Ok(item_token) => item_token,
+        Err(e) => {
+            args.errors.lock().await.push(MigrationError {
+                mint: args.item_mint.to_string(),
+                error: e.to_string(),
+            });
+            return Ok(());
+        }
+    };
+
+    let account = match args.client.get_account(&item_token) {
+        Ok(item_token) => item_token,
+        Err(e) => {
+            args.errors.lock().await.push(MigrationError {
+                mint: args.item_mint.to_string(),
+                error: e.to_string(),
+            });
+            return Ok(());
+        }
+    };
+
+    let token_account = match TokenAccount::unpack(&account.data) {
+        Ok(account) => account,
+        Err(e) => {
+            args.errors.lock().await.push(MigrationError {
+                mint: args.item_mint.to_string(),
+                error: e.to_string(),
+            });
+            return Ok(());
+        }
+    };
+
+    let token_owner = token_account.owner;
+    let token_owner_program = match args.client.get_account(&token_owner) {
+        Ok(account) => account.owner,
+        Err(e) => {
+            args.errors.lock().await.push(MigrationError {
+                mint: args.item_mint.to_string(),
+                error: e.to_string(),
+            });
+            return Ok(());
+        }
+    };
+
+    let token_owner_program_account = match args.client.get_account(&token_owner_program) {
+        Ok(account) => account,
+        Err(e) => {
+            args.errors.lock().await.push(MigrationError {
+                mint: args.item_mint.to_string(),
+                error: e.to_string(),
+            });
+            return Ok(());
+        }
+    };
+
+    // We need to pass the program data buffer to the migration program
+    // if the token owner program is an upgradeable program.
+    let state_opt: Option<UpgradeableLoaderState> =
+        bincode::deserialize(&token_owner_program_account.data).ok();
+
+    let token_owner_program_buffer = if let Some(state) = state_opt {
+        match state {
+            UpgradeableLoaderState::Program {
+                programdata_address,
+            } => Some(programdata_address),
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    let params = MigrateParams {
+        client: &args.client,
+        payer: &args.keypair,
+        item_mint: args.item_mint,
+        item_token,
+        token_owner,
+        token_owner_program,
+        token_owner_program_buffer,
+        collection_mint: args.collection_mint,
+        rule_set: args.rule_set,
+    };
+
+    let sig = match migrate_item(params) {
+        Ok(signature) => signature,
+        Err(e) => {
+            args.errors.lock().await.push(MigrationError {
+                mint: args.item_mint.to_string(),
+                error: e.to_string(),
+            });
+            return Ok(());
+        }
+    };
+
+    args.completed_mints.lock().await.push(MigratedMint {
+        sig: sig.to_string(),
+        item_mint: args.item_mint.to_string(),
+    });
 
     Ok(())
 }
