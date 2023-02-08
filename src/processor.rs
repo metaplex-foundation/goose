@@ -15,7 +15,11 @@ use solana_client::rpc_client::RpcClient;
 use solana_program::{
     bpf_loader_upgradeable::UpgradeableLoaderState, program_pack::Pack, pubkey::Pubkey,
 };
-use solana_sdk::{signature::Keypair, signer::Signer, transaction::Transaction};
+use solana_sdk::{
+    signature::{Keypair, Signature},
+    signer::Signer,
+    transaction::Transaction,
+};
 use spl_token::state::Account as TokenAccount;
 use tokio::sync::{Mutex, Semaphore};
 
@@ -345,11 +349,11 @@ pub async fn process_migrate(
     let semaphore = Arc::new(Semaphore::new(100));
     let pb = create_progress_bar("", mints.len() as u64);
 
-    let spinner = spinner_with_style();
-    spinner.set_message("Migrating...");
+    pb.set_message("Migrating mints...");
     for item_mint in mints {
         let permit = Arc::clone(&semaphore).acquire_owned().await.unwrap();
         let pb = pb.clone();
+        let completed_mints = completed_mints.clone();
         let errors = errors.clone();
         let keypair = keypair.clone();
         let client = client.clone();
@@ -363,11 +367,14 @@ pub async fn process_migrate(
                 collection_mint,
                 item_mint,
                 rule_set,
-                completed_mints: Arc::new(Mutex::new(Vec::new())),
-                errors: Arc::new(Mutex::new(Vec::new())),
             };
             match migrate_mint(args).await {
-                Ok(_) => {}
+                Ok(sig) => {
+                    completed_mints.lock().await.push(MigratedMint {
+                        sig: sig.to_string(),
+                        item_mint: item_mint.to_string(),
+                    });
+                }
                 Err(e) => {
                     errors.lock().await.push(MigrationError {
                         mint: item_mint.to_string(),
@@ -383,10 +390,12 @@ pub async fn process_migrate(
     while let Some(task) = tasks.next().await {
         task?;
     }
-    spinner.finish();
 
     let completed_mints = Arc::try_unwrap(completed_mints).unwrap().into_inner();
     let errors = Arc::try_unwrap(errors).unwrap().into_inner();
+
+    println!("Migrated {} mints", completed_mints.len());
+    println!("Failed to migrate {} mints", errors.len());
 
     let success_name = format!("{collection_mint}_migrated_mints.json");
     let failures_name = format!("{collection_mint}_failed_mints.json");
@@ -404,66 +413,19 @@ struct MigrateArgs {
     collection_mint: Pubkey,
     item_mint: Pubkey,
     rule_set: Pubkey,
-    completed_mints: Arc<Mutex<Vec<MigratedMint>>>,
-    errors: Arc<Mutex<Vec<MigrationError>>>,
 }
 
-async fn migrate_mint(args: MigrateArgs) -> Result<()> {
-    let item_token = match get_nft_token_account(&args.client, args.item_mint) {
-        Ok(item_token) => item_token,
-        Err(e) => {
-            args.errors.lock().await.push(MigrationError {
-                mint: args.item_mint.to_string(),
-                error: e.to_string(),
-            });
-            return Ok(());
-        }
-    };
+async fn migrate_mint(args: MigrateArgs) -> Result<Signature> {
+    let item_token = get_nft_token_account(&args.client, args.item_mint)?;
 
-    let account = match args.client.get_account(&item_token) {
-        Ok(item_token) => item_token,
-        Err(e) => {
-            args.errors.lock().await.push(MigrationError {
-                mint: args.item_mint.to_string(),
-                error: e.to_string(),
-            });
-            return Ok(());
-        }
-    };
+    let account = args.client.get_account(&item_token)?;
 
-    let token_account = match TokenAccount::unpack(&account.data) {
-        Ok(account) => account,
-        Err(e) => {
-            args.errors.lock().await.push(MigrationError {
-                mint: args.item_mint.to_string(),
-                error: e.to_string(),
-            });
-            return Ok(());
-        }
-    };
+    let token_account = TokenAccount::unpack(&account.data)?;
 
     let token_owner = token_account.owner;
-    let token_owner_program = match args.client.get_account(&token_owner) {
-        Ok(account) => account.owner,
-        Err(e) => {
-            args.errors.lock().await.push(MigrationError {
-                mint: args.item_mint.to_string(),
-                error: e.to_string(),
-            });
-            return Ok(());
-        }
-    };
+    let token_owner_program = args.client.get_account(&token_owner)?.owner;
 
-    let token_owner_program_account = match args.client.get_account(&token_owner_program) {
-        Ok(account) => account,
-        Err(e) => {
-            args.errors.lock().await.push(MigrationError {
-                mint: args.item_mint.to_string(),
-                error: e.to_string(),
-            });
-            return Ok(());
-        }
-    };
+    let token_owner_program_account = args.client.get_account(&token_owner_program)?;
 
     // We need to pass the program data buffer to the migration program
     // if the token owner program is an upgradeable program.
@@ -493,21 +455,5 @@ async fn migrate_mint(args: MigrateArgs) -> Result<()> {
         rule_set: args.rule_set,
     };
 
-    let sig = match migrate_item(params) {
-        Ok(signature) => signature,
-        Err(e) => {
-            args.errors.lock().await.push(MigrationError {
-                mint: args.item_mint.to_string(),
-                error: e.to_string(),
-            });
-            return Ok(());
-        }
-    };
-
-    args.completed_mints.lock().await.push(MigratedMint {
-        sig: sig.to_string(),
-        item_mint: args.item_mint.to_string(),
-    });
-
-    Ok(())
+    migrate_item(params)
 }
