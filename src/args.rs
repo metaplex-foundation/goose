@@ -92,5 +92,9 @@ pub enum Commands {
         /// Mint list
         #[arg(short, long)]
         mint_list: PathBuf,
+
+        /// Maxiumum number of parallel requests to make to the RPC server.
+        #[arg(short, long, default_value = "100")]
+        batch_size: usize,
     },
 }

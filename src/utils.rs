@@ -110,3 +110,16 @@ struct TokenAccount {
     // #[serde(rename = "uiAmountString")]
     // ui_amount_string: String,
 }
+
+pub fn create_progress_bar(msg: &'static str, len: u64) -> ProgressBar {
+    let pb = ProgressBar::new(len);
+
+    let style = ProgressStyle::default_bar()
+        .template("{spinner:.blue} {msg} {wide_bar:.cyan/blue} {pos:>7}/{len:7} {eta_precise}")
+        .unwrap()
+        .progress_chars("##-");
+
+    pb.set_style(style);
+    pb.set_message(msg);
+    pb
+}

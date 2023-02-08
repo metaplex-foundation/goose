@@ -6,7 +6,8 @@ use goose::{
     processor::*,
 };
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     solana_logger::setup_with_default("solana=error");
 
     let args = args::Args::parse();
@@ -46,6 +47,16 @@ fn main() -> Result<()> {
         Commands::Migrate {
             collection_mint,
             mint_list,
-        } => process_migrate(keypair_path, rpc_url, collection_mint, mint_list),
+            batch_size,
+        } => {
+            process_migrate(
+                keypair_path,
+                rpc_url,
+                collection_mint,
+                mint_list,
+                batch_size,
+            )
+            .await
+        }
     }
 }
