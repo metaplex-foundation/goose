@@ -40,7 +40,15 @@ async fn main() -> Result<()> {
             collection_mint,
             rule_set,
             size,
-        } => process_update(keypair_path, rpc_url, collection_mint, rule_set, size),
+            new_update_authority,
+        } => process_update(
+            keypair_path,
+            rpc_url,
+            collection_mint,
+            rule_set,
+            size,
+            new_update_authority,
+        ),
         Commands::Start { collection_mint } => {
             process_start(keypair_path, rpc_url, collection_mint)
         }

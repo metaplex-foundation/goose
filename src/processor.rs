@@ -250,6 +250,7 @@ pub fn process_update(
     collection_mint: Pubkey,
     rule_set: Option<Pubkey>,
     collection_size: Option<u32>,
+    new_update_authority: Option<Pubkey>,
 ) -> Result<()> {
     let config = setup::CliConfig::new(keypair, rpc_url)?;
 
@@ -261,6 +262,7 @@ pub fn process_update(
         migration_state,
         collection_size,
         rule_set,
+        new_update_authority,
     };
     let spinner = spinner_with_style();
     spinner.set_message("Updating migration state...");
