@@ -131,6 +131,7 @@ pub struct UpdateParams<'a> {
     pub migration_state: Pubkey,
     pub rule_set: Option<Pubkey>,
     pub collection_size: Option<u32>,
+    pub new_update_authority: Option<Pubkey>,
 }
 
 pub fn update(params: UpdateParams) -> Result<Signature> {
@@ -140,11 +141,13 @@ pub fn update(params: UpdateParams) -> Result<Signature> {
         migration_state,
         rule_set,
         collection_size,
+        new_update_authority,
     } = params;
 
     let args = UpdateArgs {
         rule_set,
         collection_size,
+        new_update_authority,
     };
 
     let instruction =

@@ -78,6 +78,10 @@ pub enum Commands {
         /// New number of items in the collection.
         #[arg(short, long)]
         size: Option<u32>,
+
+        /// New update authority for items in the collection.
+        #[arg(short, long)]
+        new_update_authority: Option<Pubkey>,
     },
     Start {
         /// Mint of the collection parent NFT.
