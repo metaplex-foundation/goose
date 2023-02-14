@@ -51,9 +51,29 @@ goose get-all-states
 
 Update a migration state and check if it's ready to be unlocked:
 
+Updateable values:
+* collection size
+* rule set pubkey
+* collection update authority (USE WITH CAUTION, this should match your NFTs update authority)
+
 ```bash
-goose update -c <collection-parent-nft-address> -s <COLLECTION_SIZE> -R <RULE_SET_PUBKEY>
+goose update -c <collection-parent-nft-address> -s <COLLECTION_SIZE> -R <RULE_SET_PUBKEY> -n <NEW_AUTHORITY_PUBKEY>
 ```
+
+You can only specify the specific value you want to update:
+
+```bash
+goose update -c <collection-parent-nft-address> -n <NEW_AUTHORITY_PUBKEY>
+```
+
+Or leave them all off to simply crank the timestamp check:
+
+```bash
+goose update -c <collection-parent-nft-address>
+```
+
+
+
 Enable migration for a collection:
 
 ```bash
