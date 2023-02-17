@@ -10,6 +10,10 @@ use mpl_migration_validator::{
     utils::find_migration_state_pda,
     PROGRAM_SIGNER,
 };
+use mpl_token_metadata::{
+    pda::find_metadata_account,
+    state::{Metadata, TokenMetadataAccount, TokenStandard},
+};
 use serde::{Deserialize, Serialize};
 use solana_client::rpc_client::RpcClient;
 use solana_program::{
@@ -459,4 +463,108 @@ async fn migrate_mint(args: MigrateArgs) -> Result<Signature> {
     };
 
     migrate_item(params)
+}
+
+pub async fn process_check(
+    keypair: Option<PathBuf>,
+    rpc_url: Option<String>,
+    mint_list: PathBuf,
+    batch_size: usize,
+) -> Result<()> {
+    let config = setup::CliConfig::new(keypair, rpc_url)?;
+
+    let f = File::open(mint_list)?;
+    let mints: Vec<String> = serde_json::from_reader(f)?;
+    let mints: Vec<Pubkey> = mints
+        .into_iter()
+        .map(|s| Pubkey::from_str(&s).unwrap())
+        .collect();
+
+    let completed_mints: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let unmigrated_mints: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let errors: Arc<Mutex<Vec<MigrationError>>> = Arc::new(Mutex::new(Vec::new()));
+
+    let client = Arc::new(config.client);
+
+    let mut tasks = FuturesUnordered::new();
+    let semaphore = Arc::new(Semaphore::new(batch_size));
+    let pb = create_progress_bar("", mints.len() as u64);
+
+    pb.set_message("Checking mints...");
+    for item_mint in mints {
+        let permit = Arc::clone(&semaphore).acquire_owned().await.unwrap();
+        let pb = pb.clone();
+        let completed_mints = completed_mints.clone();
+        let unmigrated_mints = unmigrated_mints.clone();
+        let errors = errors.clone();
+        let client = client.clone();
+
+        tasks.push(tokio::spawn(async move {
+            let _permit = permit;
+
+            let (metadata, _) = find_metadata_account(&item_mint);
+
+            let account = match client.get_account_data(&metadata) {
+                Ok(account) => account,
+                Err(e) => {
+                    errors.lock().await.push(MigrationError {
+                        mint: item_mint.to_string(),
+                        error: e.to_string(),
+                    });
+                    pb.inc(1);
+                    return;
+                }
+            };
+
+            let md = match Metadata::safe_deserialize(&account) {
+                Ok(md) => md,
+                Err(e) => {
+                    errors.lock().await.push(MigrationError {
+                        mint: item_mint.to_string(),
+                        error: e.to_string(),
+                    });
+                    pb.inc(1);
+                    return;
+                }
+            };
+
+            if let Some(token_standard) = md.token_standard {
+                if token_standard == TokenStandard::ProgrammableNonFungible {
+                    completed_mints.lock().await.push(item_mint.to_string());
+                } else {
+                    unmigrated_mints.lock().await.push(item_mint.to_string());
+                }
+            } else {
+                unmigrated_mints.lock().await.push(item_mint.to_string());
+            }
+
+            pb.inc(1);
+        }));
+    }
+
+    while let Some(task) = tasks.next().await {
+        task?;
+    }
+
+    let completed_mints = Arc::try_unwrap(completed_mints).unwrap().into_inner();
+    let unmigrated_mints = Arc::try_unwrap(unmigrated_mints).unwrap().into_inner();
+    let errors = Arc::try_unwrap(errors).unwrap().into_inner();
+
+    println!("Migrated {} mints", completed_mints.len());
+    println!("Unmigrated {} mints", unmigrated_mints.len());
+    println!("Encountered {} errors", errors.len());
+
+    let migrated_name = "migrated_mints.json".to_string();
+    let unmigrated_name = "unmigrated_mints.json".to_string();
+    let errors_name = "errors.json".to_string();
+
+    let m = File::create(migrated_name)?;
+    let u = File::create(unmigrated_name)?;
+    let e = File::create(errors_name)?;
+
+    serde_json::to_writer_pretty(m, &completed_mints)?;
+    serde_json::to_writer_pretty(u, &unmigrated_mints)?;
+    serde_json::to_writer_pretty(e, &errors)?;
+
+    Ok(())
 }
