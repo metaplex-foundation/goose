@@ -10,7 +10,10 @@ use mpl_migration_validator::{
     utils::find_migration_state_pda,
     PROGRAM_SIGNER,
 };
-use mpl_token_metadata::state::{Metadata, TokenMetadataAccount, TokenStandard};
+use mpl_token_metadata::{
+    pda::find_metadata_account,
+    state::{Metadata, TokenMetadataAccount, TokenStandard},
+};
 use serde::{Deserialize, Serialize};
 use solana_client::rpc_client::RpcClient;
 use solana_program::{
@@ -499,13 +502,16 @@ pub async fn process_check(
         tasks.push(tokio::spawn(async move {
             let _permit = permit;
 
-            let account = match client.get_account_data(&item_mint) {
+            let (metadata, _) = find_metadata_account(&item_mint);
+
+            let account = match client.get_account_data(&metadata) {
                 Ok(account) => account,
                 Err(e) => {
                     errors.lock().await.push(MigrationError {
                         mint: item_mint.to_string(),
                         error: e.to_string(),
                     });
+                    pb.inc(1);
                     return;
                 }
             };
@@ -517,6 +523,7 @@ pub async fn process_check(
                         mint: item_mint.to_string(),
                         error: e.to_string(),
                     });
+                    pb.inc(1);
                     return;
                 }
             };
