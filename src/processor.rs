@@ -487,7 +487,7 @@ pub async fn process_check(
     let semaphore = Arc::new(Semaphore::new(batch_size));
     let pb = create_progress_bar("", mints.len() as u64);
 
-    pb.set_message("Migrating mints...");
+    pb.set_message("Checking mints...");
     for item_mint in mints {
         let permit = Arc::clone(&semaphore).acquire_owned().await.unwrap();
         let pb = pb.clone();
@@ -544,7 +544,8 @@ pub async fn process_check(
     let errors = Arc::try_unwrap(errors).unwrap().into_inner();
 
     println!("Migrated {} mints", completed_mints.len());
-    println!("Failed to migrate {} mints", errors.len());
+    println!("Unmigrated {} mints", unmigrated_mints.len());
+    println!("Encountered {} errors", errors.len());
 
     let migrated_name = "migrated_mints.json".to_string();
     let unmigrated_name = "unmigrated_mints.json".to_string();
