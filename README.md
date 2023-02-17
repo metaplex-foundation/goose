@@ -85,3 +85,15 @@ Migrate items from a mint list, if the migration is enabled:
 ```bash
 goose migrate -c <collection-parent-nft-address> -m <mint-list-file>
 ```
+
+Check mint list for migrated and unmigrated items:
+
+```bash
+goose check -m <mint-list-file>
+```
+
+This will print out three files:
+
+`migrated_mints.json`, `unmigrated_mints.json`, and `errors.json`
+
+You can then run the `migrate` command to migrate the items in `unmigrated_mints.json` and repeated until all items are successfully migrated. The `errors.json` file will contain any itesm that failed the check.
