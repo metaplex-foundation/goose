@@ -83,7 +83,7 @@ goose start -c <collection-parent-nft-address>
 Migrate items from a mint list, if the migration is enabled:
 
 ```bash
-goose migrate -c <collection-parent-nft-address> -m <mint-list-file>
+goose migrate -c <collection-parent-nft-address> -m <mint-list-file.json>
 ```
 
 Check mint list for migrated and unmigrated items:
