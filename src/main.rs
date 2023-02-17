@@ -66,5 +66,9 @@ async fn main() -> Result<()> {
             )
             .await
         }
+        Commands::Check {
+            mint_list,
+            batch_size,
+        } => process_check(keypair_path, rpc_url, mint_list, batch_size).await,
     }
 }

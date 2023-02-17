@@ -1293,6 +1293,7 @@ dependencies = [
  "futures",
  "indicatif 0.17.2",
  "mpl-migration-validator",
+ "mpl-token-metadata",
  "serde",
  "serde_json",
  "serde_yaml 0.9.16",
