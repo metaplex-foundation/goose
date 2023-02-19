@@ -24,10 +24,10 @@ By default, `goose` looks in your Solana config file for both the keypair and RP
 Open a migration state account for a given collection parent NFT to start the timed countdown:
 
 ```bash
-goose init -c <collection-parent-nft-address> -m <Timed|Vote> -s <COLLECTION_SIZE>
+goose init -c <collection-parent-nft-address> -m <Timed> -s <COLLECTION_SIZE>
 ```
 
-There are two unlock methods: `Timed` and `Vote`. `Timed` unlocks the collection after a two weeks. `Vote` unlocks the collection after the two week period but also requires proof of a community vote.
+There is only one unlock method supported: `Timed` unlocks the collection after a two weeks and is the default, so this command can be elided.
 
 The collection size is the number of NFTs in the collection and is not checked by the on-chain program so must be entered correctly by the user.
 
