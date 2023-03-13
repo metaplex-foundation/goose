@@ -167,6 +167,38 @@ pub fn update(params: UpdateParams) -> Result<Signature> {
     Ok(sig)
 }
 
+pub struct UpdateMsgParams<'a> {
+    pub authority: &'a Keypair,
+    pub authority_pubkey: Pubkey,
+    pub migration_state: Pubkey,
+    pub rule_set: Option<Pubkey>,
+    pub collection_size: Option<u32>,
+    pub new_update_authority: Option<Pubkey>,
+}
+
+pub fn update_msg(params: UpdateMsgParams) -> Result<String> {
+    let UpdateMsgParams {
+        authority,
+        authority_pubkey,
+        migration_state,
+        rule_set,
+        collection_size,
+        new_update_authority,
+    } = params;
+
+    let args = UpdateArgs {
+        rule_set,
+        collection_size,
+        new_update_authority,
+    };
+
+    let instruction =
+        mpl_migration_validator::instruction::update(authority_pubkey, migration_state, args);
+
+    let message = Message::new(&[instruction], Some(&authority.pubkey()));
+    Ok(bs58::encode(message.serialize()).into_string())
+}
+
 pub struct StartParams<'a> {
     pub client: &'a RpcClient,
     pub authority: &'a Keypair,

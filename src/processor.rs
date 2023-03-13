@@ -29,9 +29,9 @@ use tokio::sync::{Mutex, Semaphore};
 
 use crate::{
     methods::{
-        close, get_state, initialize, initialize_msg, migrate_item, start, update, CloseParams,
-        GetStateParams, InitializeMsgParams, InitializeParams, MigrateParams, StartParams,
-        UpdateParams,
+        close, get_state, initialize, initialize_msg, migrate_item, start, update, update_msg,
+        CloseParams, GetStateParams, InitializeMsgParams, InitializeParams, MigrateParams,
+        StartParams, UpdateMsgParams, UpdateParams,
     },
     setup,
     utils::{create_progress_bar, get_cluster, get_nft_token_account, spinner_with_style},
@@ -279,6 +279,37 @@ pub fn process_update(
         "Updated migration state successfully in tx: {}",
         style(link).green()
     );
+
+    Ok(())
+}
+
+pub fn process_update_msg(
+    keypair: Option<PathBuf>,
+    rpc_url: Option<String>,
+    collection_mint: Pubkey,
+    rule_set: Option<Pubkey>,
+    collection_size: Option<u32>,
+    new_update_authority: Option<Pubkey>,
+    authority_pubkey: Pubkey,
+) -> Result<()> {
+    let config = setup::CliConfig::new(keypair, rpc_url)?;
+
+    let (migration_state, _) = find_migration_state_pda(&collection_mint);
+
+    let params = UpdateMsgParams {
+        authority: &config.keypair,
+        authority_pubkey,
+        migration_state,
+        collection_size,
+        rule_set,
+        new_update_authority,
+    };
+    let spinner = spinner_with_style();
+    spinner.set_message("Updating migration state...");
+    let tx = update_msg(params)?;
+    spinner.finish();
+
+    println!("Transaction: {}", style(tx).green());
 
     Ok(())
 }
