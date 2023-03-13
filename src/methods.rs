@@ -192,7 +192,6 @@ pub fn update_msg(params: UpdateMsgParams) -> Result<String> {
         new_update_authority,
     };
 
-    // TODO: swap the authority pubkey with the vault pubkey
     let instruction =
         mpl_migration_validator::instruction::update(authority_pubkey, migration_state, args);
 
