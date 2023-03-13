@@ -305,12 +305,6 @@ pub fn process_update_msg(
     let tx = update_msg(params)?;
     spinner.finish();
 
-    // let cluster = get_cluster(&config.client)?;
-    // let link = format!("https://explorer.solana.com/tx/{sig}?cluster={cluster}");
-    // println!(
-    //     "Updated migration state successfully in tx: {}",
-    //     style(link).green()
-    // );
     println!("Transaction: {}", style(tx).green());
 
     Ok(())
