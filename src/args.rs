@@ -83,6 +83,25 @@ pub enum Commands {
         #[arg(short, long)]
         new_update_authority: Option<Pubkey>,
     },
+    UpdateMsg {
+        /// Mint of the collection parent NFT.
+        #[arg(short, long)]
+        collection_mint: Pubkey,
+
+        /// Rule set to use for the collection.
+        #[arg(short = 'R', long)]
+        rule_set: Option<Pubkey>,
+
+        /// New number of items in the collection.
+        #[arg(short, long)]
+        size: Option<u32>,
+
+        /// New update authority for items in the collection.
+        #[arg(short, long)]
+        new_update_authority: Option<Pubkey>,
+
+        authority_pubkey: Pubkey,
+    },
     Start {
         /// Mint of the collection parent NFT.
         #[arg(short, long)]

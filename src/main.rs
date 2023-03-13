@@ -49,6 +49,21 @@ async fn main() -> Result<()> {
             size,
             new_update_authority,
         ),
+        Commands::UpdateMsg {
+            collection_mint,
+            rule_set,
+            size,
+            new_update_authority,
+            authority_pubkey,
+        } => process_update_msg(
+            keypair_path,
+            rpc_url,
+            collection_mint,
+            rule_set,
+            size,
+            new_update_authority,
+            authority_pubkey,
+        ),
         Commands::Start { collection_mint } => {
             process_start(keypair_path, rpc_url, collection_mint)
         }
