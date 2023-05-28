@@ -96,4 +96,4 @@ This will print out three files:
 
 `migrated_mints.json`, `unmigrated_mints.json`, and `errors.json`
 
-You can then run the `migrate` command to migrate the items in `unmigrated_mints.json` and repeated until all items are successfully migrated. The `errors.json` file will contain any itesm that failed the check.
+You can then run the `migrate` command to migrate the items in `unmigrated_mints.json` and repeat until all items are successfully migrated. The `errors.json` file will contain any items that failed the check.
