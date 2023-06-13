@@ -7,4 +7,4 @@ A simple CLI to interact with the [mpl-migration-validator](https://github.com/m
 
 ## Deprecated
 
-With the closing of the pNFT migration on May 31st, Goose is now deprecated.
+With the closing of the pNFT migration window, Goose is now deprecated.
